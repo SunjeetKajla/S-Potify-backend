@@ -1,12 +1,12 @@
 // server/index.js
 require('dotenv').config();
-const express        = require('express');
-const cors           = require('cors');
-const SpotifyWebApi  = require('spotify-web-api-node');
-const yts            = require('yt-search');   // 🔄 new search lib
-const ytdl           = require('@distube/ytdl-core');
+const express = require('express');
+const cors = require('cors');
+const SpotifyWebApi = require('spotify-web-api-node');
+const yts = require('yt-search');   // 🔄 new search lib
+const ytdl = require('@distube/ytdl-core');
 
-const app  = express();
+const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
@@ -14,7 +14,7 @@ app.use(express.json());
 
 /* ─── Spotify setup ─────────────────────────────────────────── */
 const spotify = new SpotifyWebApi({
-  clientId:     process.env.SPOTIFY_CLIENT_ID,
+  clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET
 });
 
@@ -50,8 +50,12 @@ app.post('/api/playlist', async (req, res) => {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: 'Missing playlist URL' });
 
-  const id = (url.match(/playlist\/([a-zA-Z0-9]+)/) || [])[1];
-  if (!id) return res.status(400).json({ error: 'Invalid playlist URL' });
+  const idMatch = url.match(/playlist\/([a-zA-Z0-9]+)(?:\?|$)/i);
+  const id = idMatch ? idMatch[1] : null;
+
+  if (!id) {
+    return res.status(400).json({ error: 'Invalid playlist URL format' });
+  }
 
   try {
     // 🔹 Get playlist metadata (name, description, etc.)
@@ -90,7 +94,7 @@ app.post('/api/youtube', async (req, res) => {
 
   try {
     const results = await yts(query);
-    const video   = results.videos[0];
+    const video = results.videos[0];
     if (!video) return res.status(404).json({ error: 'No video found' });
 
     res.json({ videoId: video.videoId, title: video.title });
@@ -109,28 +113,29 @@ app.get('/api/stream/:id', async (req, res) => {
   if (!ytdl.validateID(id)) return res.status(400).send('Bad video id');
 
   const range = req.headers.range || "bytes=0-";
-  const info  = await ytdl.getInfo(id);
+  const info = await ytdl.getInfo(id);
   const format = ytdl.chooseFormat(info.formats, {
-                 quality: 'highestaudio', filter: 'audioonly' });
+    quality: 'highestaudio', filter: 'audioonly'
+  });
 
   // Parse range
   const [start, end] = range.replace(/bytes=/, "").split("-").map(Number);
-  const total        = Number(format.contentLength);
-  const chunkEnd     = end || total - 1;
-  const chunkSize    = chunkEnd - start + 1;
+  const total = Number(format.contentLength);
+  const chunkEnd = end || total - 1;
+  const chunkSize = chunkEnd - start + 1;
 
   res.status(206)
-     .set({
-       "Content-Range": `bytes ${start}-${chunkEnd}/${total}`,
-       "Accept-Ranges": "bytes",
-       "Content-Length": chunkSize,
-       "Content-Type": "audio/webm"
-     });
+    .set({
+      "Content-Range": `bytes ${start}-${chunkEnd}/${total}`,
+      "Accept-Ranges": "bytes",
+      "Content-Length": chunkSize,
+      "Content-Type": "audio/webm"
+    });
 
   // Pipe only the requested slice
   const stream = ytdl.downloadFromInfo(info, {
     quality: format.itag,
-    range  : { start, end: chunkEnd }
+    range: { start, end: chunkEnd }
   });
 
   pump(stream, res);
