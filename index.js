@@ -142,7 +142,7 @@ app.get("/callback", async (req, res) => {
       }
     }, (body.expires_in - 300) * 1000);
 
-    res.redirect("https://s-potify.great-site.net?loggedIn=true");
+    res.redirect(`${process.env.FRONTEND_URL}?loggedIn=true`);
   } catch (e) {
     console.error("❌ login failed", e.body || e);
     res.status(500).send("Spotify login failed");
