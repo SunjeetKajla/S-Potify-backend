@@ -255,11 +255,16 @@ app.get("/api/stream/:id", async (req, res) => {
   );
 });
 
-/* ─────────────── 3.  STATIC FRONTEND ──────────────────── */
-app.use(express.static(path.join(__dirname, "../public")));
-app.get(/^\/(?!api\/).*/, (_req, res) =>
-  res.sendFile(path.join(__dirname, "../public/index.html"))
-);
+/* ─────────────── 3.  NO STATIC FRONTEND (Frontend is deployed separately) ─────────────── */
+// ❌ Do NOT serve any static files from backend
+
+// ✅ Optional: Catch-all route to warn if someone visits backend URL directly
+app.get("/", (_req, res) => {
+  res.send("🎵 S-Potify Backend is Running. This server handles API requests only.");
+});
+
+// ✅ Keep your API routes as-is
+// e.g. app.get("/api/...", ...)
 
 /* ─────────────── 4.  START SERVER ─────────────────────── */
 app.listen(PORT, () =>
