@@ -142,7 +142,7 @@ app.get("/callback", async (req, res) => {
       }
     }, (body.expires_in - 300) * 1000);
 
-    res.redirect("http://127.0.0.1:3000/Web%20Version/public/index.html?loggedIn=true");
+    res.redirect("https://s-potify.great-site.net?loggedIn=true");
   } catch (e) {
     console.error("❌ login failed", e.body || e);
     res.status(500).send("Spotify login failed");
@@ -263,5 +263,5 @@ app.get(/^\/(?!api\/).*/, (_req, res) =>
 
 /* ─────────────── 4.  START SERVER ─────────────────────── */
 app.listen(PORT, () =>
-  console.log(`🎧  S‑Potify backend running  →  http://127.0.0.1:${PORT}`)
+  console.log(`🎧  S‑Potify backend running  →  https://s-potify-backend.onrender.com:${PORT}`)
 );
