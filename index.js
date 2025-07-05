@@ -12,6 +12,8 @@ const pump = require("pump");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+let userSpotify = null;
+
 app.use(cors());
 app.use(express.json());
 
@@ -60,8 +62,9 @@ app.get("/login", (_req, res) => {
 });
 
 app.get("/logout", (_req, res) => {
-  spotifyUser.resetAccessToken("");
-  spotifyUser.resetRefreshToken("");
+  userSpotify = null;
+  spotifyUser.setAccessToken("");
+  spotifyUser.setRefreshToken("");
   res.sendStatus(200);
 });
 
