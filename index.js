@@ -17,6 +17,11 @@ let userSpotify = null;
 app.use(cors());
 app.use(express.json());
 
+function mmss(ms) {
+  return `${Math.floor(ms / 60000)}:${String(Math.floor((ms % 60000) / 1000)).padStart(2, "0")}`;
+}
+
+
 /* ─────────────── 1.  TWO  SPOTIFY CLIENTS ─────────────── */
 const creds = {
   clientId: process.env.SPOTIFY_CLIENT_ID,
@@ -169,8 +174,6 @@ const ensureAppToken = res => {
   return true;
 };
 
-const mmss = ms =>
-  `${Math.floor(ms / 60000)}:${String(Math.floor((ms % 60000) / 1000)).padStart(2, "0")}`;
 
 /* ─────────────── 2.  API ROUTES ───────────────────────── */
 app.post("/api/playlist", async (req, res) => {
